@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import sideImg from '../assets/side.jpg?format=webp'
 
-const SignUpLogin = () => {
+const SignUp = () => {
   return (
     <div className="w-full flex bg-black h-[100vh]">
       {/* login container left side */}
@@ -79,5 +79,5 @@ const SignUpLogin = () => {
   )
 }
 
-export default SignUpLogin
+export default SignUp
 

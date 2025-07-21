@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import api from "../AxiosInstance";
+import api from "./frontend/auth-boilerplate/src/AxiosInstance";
 
 interface AuthContextType {
     user: any;

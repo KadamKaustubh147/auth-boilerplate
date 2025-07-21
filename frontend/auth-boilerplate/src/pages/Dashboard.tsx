@@ -1,5 +1,5 @@
 import { useContext } from "react"
-import { AuthContext } from "../context/AuthContext"
+import { AuthContext } from "../context/AuthContext-http-jwt"
 import { Navigate } from "react-router-dom"
 
 const AppPage = () => {

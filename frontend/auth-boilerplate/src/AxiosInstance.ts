@@ -4,11 +4,11 @@ import axios from 'axios';
 let baseURL: string;
 const isDevelopment = import.meta.env.MODE === "development"
 
-if(isDevelopment){
+if (isDevelopment) {
   baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL
 }
-else{
-  baseURL =  import.meta.env.VITE_API_BASE_URL_DEPLOY
+else {
+  baseURL = import.meta.env.VITE_API_BASE_URL_DEPLOY
 }
 
 console.log("API baseURL:", baseURL);
@@ -18,9 +18,33 @@ const AxiosInstance = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
-    accept: "application/json"
+    accept: "application/json",
   },
+  withCredentials: true, // ⬅️ critical for cookies
 });
+
+AxiosInstance.interceptors.response.use(response => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    //     - If the response status is **401 Unauthorized** → it means:
+    //   - The access token is likely expired.
+    // - The `!originalRequest._retry` part means:
+    //   - We only want to retry **once**, not infinitely → so we add a custom flag.
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        await AxiosInstance.post("/accounts/refresh");
+        return AxiosInstance(originalRequest);
+      } catch (refreshError) {
+        console.error("Token refresh failed");
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 
 export default AxiosInstance;
 // in applications import as api

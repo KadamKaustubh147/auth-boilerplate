@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,8 +60,16 @@ MIDDLEWARE = [
 ]
 
 # for best security always keep the number of allowed origins to be less
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
-   "http://localhost:5173",
+    "http://localhost:5173",    
+    "http://127.0.0.1:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 ROOT_URLCONF = 'auth_boilerplate.urls'
@@ -144,12 +153,11 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
+    "AUTH_HEADER_TYPES": ('JWT',),
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-
 }
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -158,9 +166,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_gmail@gmail.com'
-EMAIL_HOST_PASSWORD = 'your_app_password'
-DEFAULT_FROM_EMAIL = 'Your App Name <your_gmail@gmail.com>'
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 
 DJOSER = {
@@ -168,6 +176,15 @@ DJOSER = {
         "user_create": "accounts.serializers.UserCreateSerializer",
     },
     'SEND_ACTIVATION_EMAIL': True,
-    'ACTIVATION_URL': 'activate/{uid}/{token}/',
+    # frontend mei daaldo baas activation link ke liye post request karna padega frontend se --> extract the uid and token from the url using react router hooks
+    'ACTIVATION_URL': 'activation/{uid}/{token}/',
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}/',
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    "PASSWORD_RESET_CONFIRM_RETYPE": True,
 }
+
+GOOGLE_CLIENT_ID=config("GOOGLE_CLIENT_ID")
+
+GOOGLE_CLIENT_SECRET=config("GOOGLE_CLIENT_SECRET")
+
+GOOGLE_REDIRECT_URI=config("GOOGLE_REDIRECT_URI")
