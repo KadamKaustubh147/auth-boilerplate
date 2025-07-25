@@ -40,15 +40,31 @@ const Login = () => {
                         <h5 className="text-xl font-medium text-gray-900 text-center dark:text-white">
                             Login to [platform]
                         </h5>
-
                         <button
                             type="button"
+                            className="w-full flex items-center justify-center gap-2 text-black bg-white border-gray-400 border-[1.5px] cursor-pointer font-medium rounded-lg text-sm px-5 py-2.5 text-center hover:bg-[#e6e6e6]"
                             onClick={() => googleLoginButton()}
-                            className="w-full mb-4 px-4 py-2 bg-[#8f34c2] text-white rounded"
                         >
-                            Login with Google 🚀
+                            <svg className="w-4 h-4" viewBox="0 0 533.5 544.3">
+                                <path
+                                    fill="#4285f4"
+                                    d="M533.5 278.4c0-17.4-1.5-34.2-4.3-50.6H272v95.8h147.1c-6.3 34-25 62.9-53.4 82.2v68h86.1c50.5-46.5 81.7-115.1 81.7-195.4z"
+                                />
+                                <path
+                                    fill="#34a853"
+                                    d="M272 544.3c72.8 0 133.8-24.1 178.4-65.3l-86.1-68c-24 16.1-54.8 25.6-92.3 25.6-71 0-131.3-47.9-152.8-112.2H31.4v70.7c44.8 88.7 137.1 149.2 240.6 149.2z"
+                                />
+                                <path
+                                    fill="#fbbc04"
+                                    d="M119.2 324.4c-10.2-30-10.2-62.4 0-92.4V161.3H31.4c-43.1 86.2-43.1 188.2 0 274.4l87.8-68.2z"
+                                />
+                                <path
+                                    fill="#ea4335"
+                                    d="M272 107.2c39.6-.6 77.8 13.6 107.1 38.9l80-80C407.5 23.6 341.3 0 272 0 168.5 0 76.2 60.5 31.4 148.8l87.8 68.2c21.5-64.3 81.8-112.2 152.8-112.2z"
+                                />
+                            </svg>
+                            Sign in with Google
                         </button>
-
                         {/* OR Line Separator */}
                         <div className="flex items-center my-4">
                             <div className="flex-grow h-px bg-gray-500"></div>

@@ -127,7 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -154,7 +154,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ('JWT',),
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -175,12 +175,16 @@ DJOSER = {
     "SERIALIZERS": {
         "user_create": "accounts.serializers.UserCreateSerializer",
     },
+    # not required below thing if frontend and backend running on same domain
+    'EMAIL_FRONTEND_DOMAIN':"localhost:5173",
     'SEND_ACTIVATION_EMAIL': True,
     # frontend mei daaldo baas activation link ke liye post request karna padega frontend se --> extract the uid and token from the url using react router hooks
     'ACTIVATION_URL': 'activation/{uid}/{token}/',
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}/',
     'USER_CREATE_PASSWORD_RETYPE': True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
+    # if the email is not in the db then give out 400 error --> check djoser endpoints documentation
+    "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND":True,
 }
 
 GOOGLE_CLIENT_ID=config("GOOGLE_CLIENT_ID")

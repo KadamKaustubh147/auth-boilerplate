@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny
 from .models import CustomUser
 
 from google.oauth2 import id_token
@@ -58,7 +59,13 @@ class CustomLogoutView(APIView):
         return res
 
 class CustomRefreshView(APIView):
+    # solved the fucking refresh token bug
+    # DRF sets all APIViews to be login protected so yeah fucker
+    authentication_classes = []  # 👈 disables global JWT auth for this view
+    permission_classes = [AllowAny]
+
     def post(self, request):
+        # print(request.status, request.text)
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
             return Response({'error': 'No refresh token'}, status=400)
@@ -78,12 +85,13 @@ class CustomRefreshView(APIView):
         except Exception as e:
             return Response({'error': 'Invalid refresh token'}, status=400)
 
-# custom user model
 class CustomGoogleLoginView(APIView):
+    # permission_classes = [AllowAny]
     def post(self, request):
         # ✅ Now we expect a code, not an id_token!
         code = request.data.get('code')
         if not code:
+            print("DEBUG: No code received in request!")
             return Response({'error': 'No authorization code provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         # ✅ Exchange code for tokens at Google's OAuth endpoint
@@ -101,12 +109,19 @@ class CustomGoogleLoginView(APIView):
         print("=======================")
 
         token_response = requests.post(token_endpoint, data=payload)
+        print(f"DEBUG: Google token exchange status: {token_response.status_code}")
+        print(f"DEBUG: Google token exchange response: {token_response.text}")
+
         if token_response.status_code != 200:
+            print("DEBUG: Failed to exchange code for tokens.")
             return Response({'error': 'Failed to exchange code for tokens'}, status=status.HTTP_400_BAD_REQUEST)
 
         tokens = token_response.json()
+        print(f"DEBUG: Tokens received: {tokens}")
+
         id_token_jwt = tokens.get('id_token')
         if not id_token_jwt:
+            print("DEBUG: No ID token found in token response!")
             return Response({'error': 'No ID token received from Google'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -116,11 +131,14 @@ class CustomGoogleLoginView(APIView):
                 google_requests.Request(),
                 settings.GOOGLE_CLIENT_ID
             )
+            print(f"DEBUG: ID token verified: {idinfo}")
 
             email = idinfo.get('email')
             google_id = idinfo.get('sub')
+            print(f"DEBUG: Extracted email: {email}, google_id: {google_id}")
 
             if not email or not google_id:
+                print("DEBUG: Missing email or google_id in ID token payload!")
                 return Response({'error': 'Invalid Google ID token'}, status=400)
 
             # ✅ Get or create user
@@ -128,13 +146,15 @@ class CustomGoogleLoginView(APIView):
                 email=email,
                 defaults={
                     'is_active': True,
-                    'name': idinfo.get('name') # as this is mandatory field
+                    'name': idinfo.get('name')  # as this is mandatory field
                 }
             )
+            print(f"DEBUG: User created: {created} | User: {user}")
 
             if hasattr(user, 'google_id') and not user.google_id:
                 user.google_id = google_id
                 user.save()
+                print("DEBUG: Saved google_id to user.")
 
             # ✅ Issue JWT tokens
             refresh = RefreshToken.for_user(user)
@@ -153,7 +173,9 @@ class CustomGoogleLoginView(APIView):
                 secure=False,
                 samesite='Lax'
             )
+            print("DEBUG: Tokens issued and cookies set.")
             return res
 
-        except ValueError:
-            return Response({'error': 'Invalid Google ID token'}, status=400)
+        except ValueError as e:
+            print(f"DEBUG: ID token verification failed: {str(e)}")
+            return Response({'error': f'Invalid Google ID token: {str(e)}'}, status=400)

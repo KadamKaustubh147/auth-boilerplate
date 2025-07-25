@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import api from "../AxiosInstance";
+import {RefreshInstance} from '../AxiosInstance' 
 
 interface AuthContextType {
     user: any; // or a proper type like UserProfile

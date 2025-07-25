@@ -21,7 +21,7 @@ const AppPage = () => {
       <h1>This should be protected</h1>
 
       {user && (
-        <p>Welcome, {user.email}</p>
+        <p>Welcome, {user.email} and {user.name}</p>
       )}
 
       <button onClick={logout}>Logout</button>

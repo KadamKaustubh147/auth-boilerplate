@@ -40,7 +40,7 @@ class CustomUserManager(BaseUserManager):
 # don't inherit from AbstractUser --> it has username as default
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    name = models.CharField(unique=True)
+    name = models.CharField()
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)  # ✅ Add this!
 
