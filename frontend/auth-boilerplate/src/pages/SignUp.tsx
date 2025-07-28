@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext-http-jwt";
 import api from '../AxiosInstance';
-import sideImg from "../assets/side.jpg?format=webp";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
@@ -11,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import zxcvbn from "zxcvbn";
 // import { FaSpinner } from "react-icons/fa";
 import { CgSpinnerAlt } from "react-icons/cg";
+import SideImg from "../components/SideImg";
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must be at most 50 characters"),
@@ -166,10 +166,9 @@ const SignUp = () => {
         </div>
       </div>
 
-      <div className="w-2/5 hidden md:block">
-        <div className="w-full h-full bg-cover bg-bottom" style={{ backgroundImage: `url(${sideImg})` }} />
-      </div>
+      <SideImg /> 
     </div>
+    
   );
 };
 

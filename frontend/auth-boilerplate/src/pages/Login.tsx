@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import sideImg from "../assets/side.jpg?format=webp";
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext-http-jwt"; // ✅ FIXED
 import type { FormEvent } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
+import SideImg from "../components/SideImg";
 
 
 const Login = () => {
@@ -137,12 +137,7 @@ const Login = () => {
             </div>
 
             {/* Right side image */}
-            <div className="w-2/5 hidden md:block">
-                <div
-                    className="w-full h-full bg-cover bg-bottom"
-                    style={{ backgroundImage: `url(${sideImg})` }}
-                />
-            </div>
+            <SideImg/>
         </div>
     );
 };
