@@ -1,42 +1,80 @@
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import zxcvbn from "zxcvbn";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { MdKeyboardBackspace } from "react-icons/md";
 import { HiKey } from "react-icons/hi2";
+import { MdKeyboardBackspace } from "react-icons/md";
 import api from "../AxiosInstance";
+
+const schema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .refine((val) => zxcvbn(val).score >= 2, {
+        message: "Password is too weak or common. Try adding symbols, numbers, or uppercase letters.",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type FormFields = z.infer<typeof schema>;
 
 const PasswordReset = () => {
   const { uid, token } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormFields>({
+    resolver: zodResolver(schema),
+  });
+
   const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const handleResetPassword = async () => {
-    if (!password || !confirmPassword) {
-      setMessage("❌ Please fill in both fields.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setMessage("❌ Passwords do not match.");
-      return;
-    }
-
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
     setStatus("pending");
     setMessage("");
 
     try {
-      await api.post("/accounts/users/reset_password_confirm/", {
+      const response = await api.post("/accounts/users/reset_password_confirm/", {
         uid,
         token,
-        new_password: password,
-        re_new_password: confirmPassword,
+        new_password: data.password,
+        re_new_password: data.confirmPassword,
       });
-      setStatus("success");
-      setMessage("✅ Your password has been successfully reset!");
-    } catch (error) {
+
+      if (response.status === 204 || response.status === 200) {
+        setStatus("success");
+        setMessage("✅ Your password has been successfully reset!");
+      } else {
+        setStatus("error");
+        setMessage("❌ Unexpected response from server.");
+      }
+    } catch (error: any) {
       setStatus("error");
-      setMessage("❌ Password reset link is invalid or has expired.");
+
+      if (error.response?.data) {
+        const serverErrors = error.response.data;
+        Object.entries(serverErrors).forEach(([field, messages]) => {
+          setError(field as keyof FormFields, {
+            type: "server",
+            message: (messages as string[]).join(" "),
+          });
+        });
+        setMessage("❌ Failed to reset password.");
+      } else {
+        setMessage("❌ Password reset link is invalid or has expired.");
+      }
     }
   };
 
@@ -48,67 +86,52 @@ const PasswordReset = () => {
         </div>
 
         {status === "idle" && (
-          <>
-            <h1 className="text-2xl font-semibold text-center pb-2">Reset your password</h1>
-            <p className="text-center text-sm text-gray-300 mb-4">
-              Enter your new password below.
-            </p>
+          <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+            <h1 className="text-2xl font-semibold text-center">Reset your password</h1>
+            <p className="text-sm text-center text-gray-300 mb-4">Enter your new password below.</p>
 
-            <div className="w-full">
-              <label
-                htmlFor="password"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                New password
-              </label>
+            <div>
+              <label htmlFor="password" className="block text-sm mb-1">New password</label>
               <input
                 type="password"
-                name="password"
                 id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register("password")}
                 placeholder="••••••••"
-                className="border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-[#1c1d21] block w-full p-2.5 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                required
+                className="w-full p-2.5 rounded-lg bg-[#1c1d21] text-white border border-gray-600 focus:ring-blue-500 focus:border-blue-500"
               />
+              {errors.password && (
+                <p className="text-sm text-red-400 mt-1">{errors.password.message}</p>
+              )}
             </div>
 
-            <div className="w-full">
-              <label
-                htmlFor="confirm_password"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                Confirm password
-              </label>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm mb-1">Confirm password</label>
               <input
                 type="password"
-                name="confirm_password"
-                id="confirm_password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                id="confirmPassword"
+                {...register("confirmPassword")}
                 placeholder="••••••••"
-                className="border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-[#1c1d21] block w-full p-2.5 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                required
+                className="w-full p-2.5 rounded-lg bg-[#1c1d21] text-white border border-gray-600 focus:ring-blue-500 focus:border-blue-500"
               />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-400 mt-1">{errors.confirmPassword.message}</p>
+              )}
             </div>
-
-            {message && <p className="text-red-500 text-sm">{message}</p>}
 
             <button
-              onClick={handleResetPassword}
-              className="bg-white text-black px-4 py-2 rounded-md mt-2 hover:bg-gray-200 transition cursor-pointer w-full"
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-white text-black px-4 py-2 rounded-md mt-2 hover:bg-gray-200 transition w-full"
             >
-              Reset Password
+              {isSubmitting ? "Resetting..." : "Reset Password"}
             </button>
-          </>
+          </form>
         )}
 
         {status === "pending" && (
           <>
             <h1 className="text-2xl font-semibold text-center pb-4">Resetting password…</h1>
-            <p className="text-center text-sm text-gray-300">
-              Please wait while we reset your password.
-            </p>
+            <p className="text-center text-sm text-gray-300">Please wait while we reset your password.</p>
           </>
         )}
 
@@ -119,11 +142,9 @@ const PasswordReset = () => {
             </h1>
             <p className="text-center text-sm text-gray-300">{message}</p>
             {status === "success" && (
-              <p className="text-center text-sm text-gray-300">
-                You can now log in with your new password.
-              </p>
+              <p className="text-center text-sm text-gray-300">You can now log in with your new password.</p>
             )}
-            <Link to="/login" className="flex items-center text-sm hover:underline">
+            <Link to="/login" className="flex items-center text-sm hover:underline mt-2">
               <MdKeyboardBackspace className="mr-1" />
               Back to login
             </Link>
