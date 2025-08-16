@@ -14,4 +14,5 @@ JS dependencies
 - @react-oauth/google-auth-provider
 - axios
 - zod
+- vite image tools
 - react hook form
